@@ -69,11 +69,20 @@ fun TransactionRow(
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(category?.name ?: "Tanpa Kategori", style = MaterialTheme.typography.titleMedium)
+            // ==== TANGGAL SELALU TAMPIL ====
             Text(
-                transaction.description?.takeIf { it.isNotBlank() } ?: DateUtils.formatDate(transaction.date),
-                style = MaterialTheme.typography.bodyMedium,
+                DateUtils.formatDate(transaction.date),
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            // Deskripsi ditampilkan terpisah jika ada
+            transaction.description?.takeIf { it.isNotBlank() }?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         Text(
             (if (isIncome) "+" else "-") + CurrencyFormatter.format(transaction.amount, currency),
