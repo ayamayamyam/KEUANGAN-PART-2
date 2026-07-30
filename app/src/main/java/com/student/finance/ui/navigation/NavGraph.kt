@@ -1,4 +1,3 @@
- @OptIn(ExperimentalMaterial3Api::class)
 package com.student.finance.ui.navigation
 
 import androidx.compose.foundation.layout.padding
@@ -48,8 +47,6 @@ fun StudentFinanceNavHost() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Shared trigger for screens whose "add" action opens a local dialog
-    // instead of navigating (Budget, Savings).
     var budgetAddTrigger by remember { mutableStateOf(0) }
     var savingsAddTrigger by remember { mutableStateOf(0) }
 
