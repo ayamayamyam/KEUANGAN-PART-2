@@ -1,3 +1,4 @@
+ @OptIn(ExperimentalMaterial3Api::class)
 package com.student.finance.ui.navigation
 
 import androidx.compose.foundation.layout.padding
