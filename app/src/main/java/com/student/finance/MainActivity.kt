@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.student.finance.ui.navigation.StudentFinanceNavHost
 import com.student.finance.ui.screens.security.PinLockScreen
@@ -19,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -31,7 +32,6 @@ class MainActivity : ComponentActivity() {
             var showSplash by remember { mutableStateOf(true) }
             var isUnlocked by remember { mutableStateOf(false) }
 
-            // Splash delay 1.5 detik
             LaunchedEffect(Unit) {
                 delay(1500)
                 showSplash = false
@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                                     BiometricHelper.showBiometricPrompt(
                                         activity = this,
                                         onSuccess = { isUnlocked = true },
-                                        onError = { /* tetap di lock screen */ }
+                                        onError = { }
                                     )
                                 }
                             } else null
