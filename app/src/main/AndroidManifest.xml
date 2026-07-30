@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permission untuk Biometrik -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Permission untuk Notifikasi -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
         android:name=".StudentFinanceApp"
         android:allowBackup="true"
-        android:icon="@android:drawable/sym_def_app_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.StudentFinance">
+        android:theme="@style/Theme.StudentFinance"
+        tools:targetApi="34">
 
         <activity
             android:name=".MainActivity"
@@ -23,5 +28,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
