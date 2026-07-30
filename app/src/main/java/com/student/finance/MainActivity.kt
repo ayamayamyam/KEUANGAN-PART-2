@@ -6,15 +6,17 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.student.finance.ui.navigation.StudentFinanceNavHost
+import com.student.finance.ui.screens.security.PinLockScreen
+import com.student.finance.ui.screens.splash.SplashScreen
 import com.student.finance.ui.theme.StudentFinanceTheme
 import com.student.finance.ui.viewmodel.SettingsViewModel
+import com.student.finance.util.BiometricHelper
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -22,7 +24,40 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            StudentFinanceRoot()
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val appLockEnabled by settingsViewModel.appLockEnabled.collectAsState()
+            val biometricEnabled by settingsViewModel.biometricEnabled.collectAsState()
+
+            var showSplash by remember { mutableStateOf(true) }
+            var isUnlocked by remember { mutableStateOf(false) }
+
+            // Splash delay 1.5 detik
+            LaunchedEffect(Unit) {
+                delay(1500)
+                showSplash = false
+            }
+
+            StudentFinanceTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    when {
+                        showSplash -> SplashScreen()
+                        !appLockEnabled -> StudentFinanceRoot()
+                        isUnlocked -> StudentFinanceRoot()
+                        else -> PinLockScreen(
+                            onUnlock = { isUnlocked = true },
+                            onUseBiometric = if (biometricEnabled && BiometricHelper.canAuthenticate(this)) {
+                                {
+                                    BiometricHelper.showBiometricPrompt(
+                                        activity = this,
+                                        onSuccess = { isUnlocked = true },
+                                        onError = { /* tetap di lock screen */ }
+                                    )
+                                }
+                            } else null
+                        )
+                    }
+                }
+            }
         }
     }
 }
