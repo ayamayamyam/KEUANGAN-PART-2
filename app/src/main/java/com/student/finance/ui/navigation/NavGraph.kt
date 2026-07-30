@@ -32,7 +32,7 @@ val bottomNavItems = listOf(
 )
 
 private val screenTitles = mapOf(
-    Screen.Dashboard.route to "Student Finance",
+    Screen.Dashboard.route to "Smart Money Manage",
     Screen.Transactions.route to "Semua Transaksi",
     Screen.AddTransaction.route to "Tambah Transaksi",
     Screen.Budget.route to "Anggaran Bulan Ini",
@@ -60,7 +60,7 @@ fun StudentFinanceNavHost() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(screenTitles[currentRoute] ?: "Student Finance") },
+                title = { Text(screenTitles[currentRoute] ?: "Smart Money Manage") },
                 actions = {
                     if (currentRoute == Screen.Dashboard.route) {
                         IconButton(onClick = { navController.navigate(Screen.Reports.route) }) {
