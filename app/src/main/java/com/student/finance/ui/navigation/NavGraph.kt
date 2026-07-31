@@ -15,6 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.student.finance.ui.screens.budget.BudgetScreen
 import com.student.finance.ui.screens.dashboard.DashboardScreen
+import com.student.finance.ui.screens.debt.DebtScreen
 import com.student.finance.ui.screens.reports.ReportsScreen
 import com.student.finance.ui.screens.savings.SavingGoalScreen
 import com.student.finance.ui.screens.settings.SettingsScreen
@@ -27,6 +28,7 @@ val bottomNavItems = listOf(
     BottomNavItem(Screen.Dashboard, "Beranda", Icons.Filled.Home),
     BottomNavItem(Screen.Transactions, "Transaksi", Icons.AutoMirrored.Filled.List),
     BottomNavItem(Screen.Budget, "Anggaran", Icons.Filled.PieChart),
+    BottomNavItem(Screen.Debt, "Arus Kas", Icons.Filled.AccountBalanceWallet),
     BottomNavItem(Screen.Savings, "Tabungan", Icons.Filled.Savings),
     BottomNavItem(Screen.Settings, "Pengaturan", Icons.Filled.Settings)
 )
@@ -36,6 +38,7 @@ private val screenTitles = mapOf(
     Screen.Transactions.route to "Semua Transaksi",
     Screen.AddTransaction.route to "Tambah Transaksi",
     Screen.Budget.route to "Anggaran Bulan Ini",
+    Screen.Debt.route to "Arus Kas",
     Screen.Savings.route to "Target Menabung",
     Screen.Reports.route to "Laporan Pengeluaran",
     Screen.Settings.route to "Pengaturan"
@@ -49,12 +52,14 @@ fun StudentFinanceNavHost() {
 
     var budgetAddTrigger by remember { mutableStateOf(0) }
     var savingsAddTrigger by remember { mutableStateOf(0) }
+    var debtAddTrigger by remember { mutableStateOf(0) }
 
     val showFab = currentRoute in listOf(
         Screen.Dashboard.route,
         Screen.Transactions.route,
         Screen.Budget.route,
-        Screen.Savings.route
+        Screen.Savings.route,
+        Screen.Debt.route
     )
 
     Scaffold(
@@ -97,6 +102,7 @@ fun StudentFinanceNavHost() {
                             navController.navigate(Screen.AddTransaction.route)
                         Screen.Budget.route -> budgetAddTrigger++
                         Screen.Savings.route -> savingsAddTrigger++
+                        Screen.Debt.route -> debtAddTrigger++
                     }
                 }) {
                     Icon(Icons.Filled.Add, contentDescription = "Tambah")
@@ -120,6 +126,9 @@ fun StudentFinanceNavHost() {
             }
             composable(Screen.Budget.route) {
                 BudgetScreen(addTrigger = budgetAddTrigger)
+            }
+            composable(Screen.Debt.route) {
+                DebtScreen(addTrigger = debtAddTrigger)
             }
             composable(Screen.Savings.route) {
                 SavingGoalScreen(addTrigger = savingsAddTrigger)
