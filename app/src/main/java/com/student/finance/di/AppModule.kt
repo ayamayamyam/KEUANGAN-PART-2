@@ -41,6 +41,9 @@ object AppModule {
     fun provideReminderDao(db: StudentFinanceDatabase): ReminderDao = db.reminderDao()
 
     @Provides
+    fun provideDebtDao(db: StudentFinanceDatabase): DebtDao = db.debtDao()
+
+    @Provides
     @Singleton
     fun provideDataStoreManager(@ApplicationContext context: Context): DataStoreManager =
         DataStoreManager(context)
