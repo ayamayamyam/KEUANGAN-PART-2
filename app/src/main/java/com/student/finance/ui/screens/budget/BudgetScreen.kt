@@ -13,39 +13,102 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.student.finance.ui.components.BudgetProgressBar
 import com.student.finance.ui.components.EmptyState
 import com.student.finance.ui.viewmodel.BudgetViewModel
+import com.student.finance.util.CurrencyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(addTrigger: Int, viewModel: BudgetViewModel = hiltViewModel()) {
-    val budgets by viewModel.budgets.collectAsState()
+    val budgetsWithSpent by viewModel.budgetsWithSpent.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val totalBudget by viewModel.totalBudget.collectAsState()
+    val totalSpent by viewModel.totalSpent.collectAsState()
+    val totalRemaining by viewModel.totalRemaining.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(addTrigger) {
         if (addTrigger > 0) showDialog = true
     }
 
-    if (budgets.isEmpty()) {
-        EmptyState("Belum ada anggaran. Tap + untuk membuat anggaran bulanan.", Modifier.fillMaxSize())
-    } else {
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            items(budgets) { budget ->
-                val category = categories.find { it.id == budget.categoryId }
-                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(category?.name ?: "Kategori", fontWeight = FontWeight.SemiBold)
-                            Text(com.student.finance.util.CurrencyFormatter.format(budget.limitAmount, "IDR"))
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        BudgetProgressBar(spent = 0.0, limit = budget.limitAmount)
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        // Ringkasan Anggaran
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Ringkasan Anggaran Bulan Ini", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column {
+                        Text("Total Anggaran", style = MaterialTheme.typography.labelSmall)
+                        Text(CurrencyFormatter.format(totalBudget, "IDR"), fontWeight = FontWeight.Bold)
+                    }
+                    Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+                        Text("Terpakai", style = MaterialTheme.typography.labelSmall)
+                        Text(CurrencyFormatter.format(totalSpent, "IDR"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                     }
                 }
+                Spacer(Modifier.height(4.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Sisa Anggaran", style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        CurrencyFormatter.format(totalRemaining, "IDR"),
+                        fontWeight = FontWeight.Bold,
+                        color = if (totalRemaining >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                BudgetProgressBar(spent = totalSpent, limit = totalBudget)
             }
-            item { Spacer(Modifier.height(80.dp)) }
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Text("Detail per Kategori", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(8.dp))
+
+        if (budgetsWithSpent.isEmpty()) {
+            EmptyState("Belum ada anggaran. Tap + untuk membuat anggaran bulanan.", Modifier.fillMaxSize())
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(budgetsWithSpent) { item ->
+                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                        Column(Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(item.category?.name ?: "Kategori", fontWeight = FontWeight.SemiBold)
+                                Text(CurrencyFormatter.format(item.budget.limitAmount, "IDR"))
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(
+                                    "Terpakai: ${CurrencyFormatter.format(item.spent, "IDR")}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    "Sisa: ${CurrencyFormatter.format(item.remaining, "IDR")}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (item.remaining > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            BudgetProgressBar(spent = item.spent, limit = item.budget.limitAmount)
+                            if (item.percentage >= item.budget.alertThreshold.toFloat()) {
+                                Text(
+                                    "Peringatan: Pengeluaran mendekati batas!",
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                item { Spacer(Modifier.height(80.dp)) }
+            }
         }
     }
 
