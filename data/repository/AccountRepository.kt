@@ -9,12 +9,13 @@ import javax.inject.Singleton
 @Singleton
 class AccountRepository @Inject constructor(private val dao: AccountDao) {
     fun getAll(): Flow<List<AccountEntity>> = dao.getAll()
-    suspend fun getById(id: Long) = dao.getById(id)
-    suspend fun getActive() = dao.getActive()
+    suspend fun getActive(): AccountEntity? = dao.getActive()
+    suspend fun getById(id: Long): AccountEntity? = dao.getById(id)
     suspend fun insert(account: AccountEntity) = dao.insert(account)
     suspend fun update(account: AccountEntity) = dao.update(account)
     suspend fun delete(account: AccountEntity) = dao.delete(account)
-    suspend fun setActive(accountId: Long) {
+
+    suspend fun switchAccount(accountId: Long) {
         dao.clearActive()
         dao.setActive(accountId)
     }
