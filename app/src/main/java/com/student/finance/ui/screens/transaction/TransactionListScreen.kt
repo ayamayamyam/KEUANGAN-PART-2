@@ -28,9 +28,14 @@ fun TransactionListScreen(
         EmptyState("Belum ada transaksi.", Modifier.fillMaxSize())
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-            items(transactions) { tx ->
+            items(transactions, key = { it.id }) { tx ->
                 val category = categories.find { it.id == tx.categoryId }
-                TransactionRow(tx, category, currency)
+                TransactionRow(
+                    tx,
+                    category,
+                    currency,
+                    onDelete = { transactionViewModel.deleteTransaction(tx) }
+                )
                 HorizontalDivider()
             }
             item { Spacer(Modifier.height(80.dp)) }
