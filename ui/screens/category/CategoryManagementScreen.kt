@@ -77,11 +77,11 @@ fun CategoryManagementScreen(viewModel: CategoryViewModel = hiltViewModel()) {
             category = editingCategory,
             type = selectedType,
             onDismiss = { showDialog = false },
-            onConfirm = { name, icon ->
+            onConfirm = { name ->
                 if (editingCategory != null) {
-                    viewModel.update(editingCategory!!.copy(name = name, icon = icon))
+                    viewModel.update(editingCategory!!.copy(name = name))
                 } else {
-                    viewModel.add(name, selectedType, icon)
+                    viewModel.add(name, selectedType)
                 }
                 showDialog = false
             }
@@ -130,33 +130,24 @@ fun CategoryDialog(
     category: CategoryEntity?,
     type: TransactionType,
     onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit
+    onConfirm: (String) -> Unit
 ) {
     var name by remember { mutableStateOf(category?.name ?: "") }
-    var icon by remember { mutableStateOf(category?.icon ?: "label") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (category != null) "Edit Kategori" else "Tambah Kategori") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nama Kategori") },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = icon,
-                    onValueChange = { icon = it },
-                    label = { Text("Icon") },
-                    singleLine = true
-                )
-            }
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nama Kategori") },
+                singleLine = true
+            )
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(name, icon) },
+                onClick = { onConfirm(name) },
                 enabled = name.isNotBlank()
             ) {
                 Text("Simpan")
