@@ -3,6 +3,7 @@ package com.student.finance.ui.screens.budget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,6 +15,8 @@ import com.student.finance.ui.components.BudgetProgressBar
 import com.student.finance.ui.components.EmptyState
 import com.student.finance.ui.viewmodel.BudgetViewModel
 import com.student.finance.util.CurrencyFormatter
+import java.text.NumberFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +33,6 @@ fun BudgetScreen(addTrigger: Int, viewModel: BudgetViewModel = hiltViewModel()) 
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // Ringkasan Anggaran
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
@@ -147,19 +149,30 @@ private fun AddBudgetDialog(
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = limitText,
-                    onValueChange = { limitText = it.filter { c -> c.isDigit() } },
+                    onValueChange = { newValue ->
+                        val filtered = newValue.filter { it.isDigit() }
+                        limitText = formatThousandInput(filtered)
+                    },
                     label = { Text("Batas Anggaran (Rp)") },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                val limit = limitText.toDoubleOrNull() ?: 0.0
+                val cleanAmount = limitText.replace(".", "").replace(",", "")
+                val limit = cleanAmount.toDoubleOrNull() ?: 0.0
                 val catId = selectedCategoryId
                 if (limit > 0 && catId != null) onConfirm(catId, limit)
             }) { Text("Simpan") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Batal") } }
     )
+}
+
+fun formatThousandInput(value: String): String {
+    if (value.isEmpty()) return ""
+    val number = value.toLongOrNull() ?: return value
+    val formatter = NumberFormat.getNumberInstance(Locale("in", "ID"))
+    return formatter.format(number)
 }
