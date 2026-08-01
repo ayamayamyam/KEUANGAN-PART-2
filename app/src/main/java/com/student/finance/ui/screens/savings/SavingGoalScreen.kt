@@ -3,6 +3,7 @@ package com.student.finance.ui.screens.savings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,6 +16,8 @@ import com.student.finance.ui.components.BudgetProgressBar
 import com.student.finance.ui.components.EmptyState
 import com.student.finance.ui.viewmodel.SavingGoalViewModel
 import com.student.finance.util.CurrencyFormatter
+import java.text.NumberFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,15 +87,19 @@ private fun AddGoalDialog(onDismiss: () -> Unit, onConfirm: (String, Double) -> 
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = target,
-                    onValueChange = { target = it.filter { c -> c.isDigit() } },
+                    onValueChange = { newValue ->
+                        val filtered = newValue.filter { it.isDigit() }
+                        target = formatThousandInput(filtered)
+                    },
                     label = { Text("Target (Rp)") },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                val amount = target.toDoubleOrNull() ?: 0.0
+                val cleanAmount = target.replace(".", "").replace(",", "")
+                val amount = cleanAmount.toDoubleOrNull() ?: 0.0
                 if (name.isNotBlank() && amount > 0) onConfirm(name, amount)
             }) { Text("Simpan") }
         },
@@ -109,17 +116,28 @@ private fun DepositDialog(goal: SavingGoalEntity, onDismiss: () -> Unit, onConfi
         text = {
             OutlinedTextField(
                 value = amountText,
-                onValueChange = { amountText = it.filter { c -> c.isDigit() } },
+                onValueChange = { newValue ->
+                    val filtered = newValue.filter { it.isDigit() }
+                    amountText = formatThousandInput(filtered)
+                },
                 label = { Text("Jumlah (Rp)") },
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         },
         confirmButton = {
             TextButton(onClick = {
-                val amount = amountText.toDoubleOrNull() ?: 0.0
+                val cleanAmount = amountText.replace(".", "").replace(",", "")
+                val amount = cleanAmount.toDoubleOrNull() ?: 0.0
                 if (amount > 0) onConfirm(amount)
             }) { Text("Tambah") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Batal") } }
     )
+}
+
+fun formatThousandInput(value: String): String {
+    if (value.isEmpty()) return ""
+    val number = value.toLongOrNull() ?: return value
+    val formatter = NumberFormat.getNumberInstance(Locale("in", "ID"))
+    return formatter.format(number)
 }
