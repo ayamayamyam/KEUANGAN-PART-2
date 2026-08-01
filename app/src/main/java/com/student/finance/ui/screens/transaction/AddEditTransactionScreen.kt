@@ -3,6 +3,7 @@ package com.student.finance.ui.screens.transaction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
@@ -16,6 +17,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.student.finance.data.local.entity.TransactionType
 import com.student.finance.ui.viewmodel.TransactionViewModel
 import com.student.finance.util.DateUtils
+import java.text.NumberFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,14 +71,16 @@ fun AddEditTransactionScreen(
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = amountText,
-                onValueChange = { amountText = it.filter { c -> c.isDigit() } },
+                onValueChange = { newValue ->
+                    val filtered = newValue.filter { it.isDigit() }
+                    amountText = formatThousandInput(filtered)
+                },
                 label = { Text("Jumlah (Rp)") },
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(16.dp))
-            // ==== TANGGAL YANG BISA DIPILIH ====
             OutlinedButton(
                 onClick = { showDatePicker = true },
                 modifier = Modifier.fillMaxWidth()
@@ -110,7 +114,8 @@ fun AddEditTransactionScreen(
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = {
-                    val amount = amountText.toDoubleOrNull() ?: 0.0
+                    val cleanAmount = amountText.replace(".", "").replace(",", "")
+                    val amount = cleanAmount.toDoubleOrNull() ?: 0.0
                     if (amount > 0) {
                         viewModel.addTransaction(
                             amount = amount,
@@ -123,19 +128,22 @@ fun AddEditTransactionScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = amountText.toDoubleOrNull()?.let { it > 0 } == true
+                enabled = amountText.replace(".", "").replace(",", "").toDoubleOrNull()?.let { it > 0 } == true
             ) { Text("Simpan Transaksi") }
         }
     }
 
-    // DatePickerDialog
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate)
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate
+        )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { selectedDate = it }
+                    datePickerState.selectedDateMillis?.let {
+                        selectedDate = it
+                    }
                     showDatePicker = false
                 }) { Text("OK") }
             },
@@ -146,4 +154,11 @@ fun AddEditTransactionScreen(
             DatePicker(state = datePickerState)
         }
     }
+}
+
+fun formatThousandInput(value: String): String {
+    if (value.isEmpty()) return ""
+    val number = value.toLongOrNull() ?: return value
+    val formatter = NumberFormat.getNumberInstance(Locale("in", "ID"))
+    return formatter.format(number)
 }
