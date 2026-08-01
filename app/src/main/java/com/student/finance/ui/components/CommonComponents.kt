@@ -44,6 +44,7 @@ fun TransactionRow(
     transaction: TransactionEntity,
     category: CategoryEntity?,
     currency: String,
+    onDelete: (() -> Unit)? = null,
     onClick: () -> Unit = {}
 ) {
     val isIncome = transaction.type == TransactionType.INCOME
@@ -61,7 +62,7 @@ fun TransactionRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                if (isIncome) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward,
+                if (isIncome) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
                 contentDescription = null,
                 tint = if (isIncome) IncomeGreen else ExpenseRed
             )
@@ -69,13 +70,11 @@ fun TransactionRow(
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(category?.name ?: "Tanpa Kategori", style = MaterialTheme.typography.titleMedium)
-            // ==== TANGGAL SELALU TAMPIL ====
             Text(
                 DateUtils.formatDate(transaction.date),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            // Deskripsi ditampilkan terpisah jika ada
             transaction.description?.takeIf { it.isNotBlank() }?.let {
                 Text(
                     it,
@@ -84,11 +83,18 @@ fun TransactionRow(
                 )
             }
         }
-        Text(
-            (if (isIncome) "+" else "-") + CurrencyFormatter.format(transaction.amount, currency),
-            fontWeight = FontWeight.SemiBold,
-            color = if (isIncome) IncomeGreen else ExpenseRed
-        )
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                (if (isIncome) "+" else "-") + CurrencyFormatter.format(transaction.amount, currency),
+                fontWeight = FontWeight.SemiBold,
+                color = if (isIncome) IncomeGreen else ExpenseRed
+            )
+            if (onDelete != null) {
+                TextButton(onClick = onDelete, contentPadding = PaddingValues(0.dp)) {
+                    Text("Hapus", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
     }
 }
 
@@ -113,4 +119,4 @@ fun BudgetProgressBar(spent: Double, limit: Double, modifier: Modifier = Modifie
         color = color,
         trackColor = color.copy(alpha = 0.15f)
     )
-}
+} buat
