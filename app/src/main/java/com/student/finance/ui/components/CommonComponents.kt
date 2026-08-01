@@ -24,8 +24,17 @@ import com.student.finance.util.CurrencyFormatter
 import com.student.finance.util.DateUtils
 
 @Composable
-fun SummaryCard(title: String, amount: Double, currency: String, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f))) {
+fun SummaryCard(
+    title: String,
+    amount: Double,
+    currency: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f))
+    ) {
         Column(Modifier.padding(16.dp)) {
             Text(title, style = MaterialTheme.typography.labelSmall)
             Spacer(Modifier.height(4.dp))
@@ -58,18 +67,24 @@ fun TransactionRow(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(if (isIncome) IncomeGreen.copy(alpha = 0.15f) else ExpenseRed.copy(alpha = 0.15f)),
+                .background(
+                    if (isIncome) IncomeGreen.copy(alpha = 0.15f)
+                    else ExpenseRed.copy(alpha = 0.15f)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                if (isIncome) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
+                imageVector = if (isIncome) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
                 contentDescription = null,
                 tint = if (isIncome) IncomeGreen else ExpenseRed
             )
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(category?.name ?: "Tanpa Kategori", style = MaterialTheme.typography.titleMedium)
+            Text(
+                category?.name ?: "Tanpa Kategori",
+                style = MaterialTheme.typography.titleMedium
+            )
             Text(
                 DateUtils.formatDate(transaction.date),
                 style = MaterialTheme.typography.bodySmall,
@@ -85,13 +100,20 @@ fun TransactionRow(
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                (if (isIncome) "+" else "-") + CurrencyFormatter.format(transaction.amount, currency),
+                text = (if (isIncome) "+" else "-") + CurrencyFormatter.format(transaction.amount, currency),
                 fontWeight = FontWeight.SemiBold,
                 color = if (isIncome) IncomeGreen else ExpenseRed
             )
             if (onDelete != null) {
-                TextButton(onClick = onDelete, contentPadding = PaddingValues(0.dp)) {
-                    Text("Hapus", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                TextButton(
+                    onClick = onDelete,
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        "Hapus",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
@@ -100,13 +122,22 @@ fun TransactionRow(
 
 @Composable
 fun EmptyState(message: String, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-fun BudgetProgressBar(spent: Double, limit: Double, modifier: Modifier = Modifier) {
+fun BudgetProgressBar(
+    spent: Double,
+    limit: Double,
+    modifier: Modifier = Modifier
+) {
     val progress = if (limit > 0) (spent / limit).toFloat().coerceIn(0f, 1f) else 0f
     val color = when {
         progress >= 1f -> ExpenseRed
@@ -115,8 +146,11 @@ fun BudgetProgressBar(spent: Double, limit: Double, modifier: Modifier = Modifie
     }
     LinearProgressIndicator(
         progress = { progress },
-        modifier = modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .clip(RoundedCornerShape(4.dp)),
         color = color,
         trackColor = color.copy(alpha = 0.15f)
     )
-} buat
+}
