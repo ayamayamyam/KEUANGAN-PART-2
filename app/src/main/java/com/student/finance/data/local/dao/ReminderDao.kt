@@ -15,9 +15,9 @@ interface ReminderDao {
     @Delete
     suspend fun delete(reminder: ReminderEntity)
 
-    @Query("SELECT * FROM reminders ORDER BY triggerTime ASC")
-    fun getAll(): Flow<List<ReminderEntity>>
+    @Query("SELECT * FROM reminders WHERE accountId = :accountId ORDER BY triggerTime ASC")
+    fun getAll(accountId: Long): Flow<List<ReminderEntity>>
 
-    @Query("SELECT * FROM reminders WHERE isEnabled = 1 ORDER BY triggerTime ASC")
-    fun getEnabled(): Flow<List<ReminderEntity>>
+    @Query("SELECT * FROM reminders WHERE id = :id")
+    suspend fun getById(id: Long): ReminderEntity?
 }
