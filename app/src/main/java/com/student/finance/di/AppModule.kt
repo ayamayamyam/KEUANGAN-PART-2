@@ -3,6 +3,8 @@ package com.student.finance.di
 import android.content.Context
 import androidx.room.Room
 import com.student.finance.data.local.DataStoreManager
+import com.student.finance.data.local.MIGRATION_2_3
+import com.student.finance.data.local.MIGRATION_3_4
 import com.student.finance.data.local.StudentFinanceDatabase
 import com.student.finance.data.local.dao.*
 import dagger.Module
@@ -23,7 +25,9 @@ object AppModule {
             context,
             StudentFinanceDatabase::class.java,
             StudentFinanceDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration().build()
+        )
+        .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+        .build()
 
     @Provides
     fun provideTransactionDao(db: StudentFinanceDatabase): TransactionDao = db.transactionDao()
@@ -42,6 +46,9 @@ object AppModule {
 
     @Provides
     fun provideDebtDao(db: StudentFinanceDatabase): DebtDao = db.debtDao()
+
+    @Provides
+    fun provideAccountDao(db: StudentFinanceDatabase): AccountDao = db.accountDao()
 
     @Provides
     @Singleton
