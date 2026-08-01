@@ -2,6 +2,7 @@ package com.student.finance.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.student.finance.data.local.DataStoreManager
 import com.student.finance.data.local.entity.DebtEntity
 import com.student.finance.data.local.entity.DebtStatus
 import com.student.finance.data.local.entity.DebtType
@@ -10,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,28 +24,31 @@ data class DebtUiState(
 
 @HiltViewModel
 class DebtViewModel @Inject constructor(
-    private val debtRepository: DebtRepository
+    private val debtRepository: DebtRepository,
+    private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
-    val allDebts: StateFlow<List<DebtEntity>> = debtRepository.getAll()
+    private val activeAccountId: StateFlow<Long> = dataStoreManager.activeAccountId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1L)
+
+    val allDebts: StateFlow<List<DebtEntity>> = activeAccountId
+        .flatMapLatest { accountId -> debtRepository.getAll(accountId) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val lentDebts: StateFlow<List<DebtEntity>> = debtRepository.getByType(DebtType.LENT)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val borrowedDebts: StateFlow<List<DebtEntity>> = debtRepository.getByType(DebtType.BORROWED)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val uiState: StateFlow<DebtUiState> = combine(
-        debtRepository.getTotalUnpaidByType(DebtType.LENT),
-        debtRepository.getTotalUnpaidByType(DebtType.BORROWED)
-    ) { lent, borrowed ->
-        DebtUiState(
-            totalLent = lent,
-            totalBorrowed = borrowed,
-            netDebt = lent - borrowed
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DebtUiState())
+    val uiState: StateFlow<DebtUiState> = activeAccountId
+        .flatMapLatest { accountId ->
+            combine(
+                debtRepository.getTotalUnpaidByType(accountId, DebtType.LENT),
+                debtRepository.getTotalUnpaidByType(accountId, DebtType.BORROWED)
+            ) { lent, borrowed ->
+                DebtUiState(
+                    totalLent = lent,
+                    totalBorrowed = borrowed,
+                    netDebt = lent - borrowed
+                )
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DebtUiState())
 
     fun addDebt(
         personName: String,
@@ -54,6 +59,7 @@ class DebtViewModel @Inject constructor(
         dueDate: Long?
     ) {
         viewModelScope.launch {
+            val accountId = activeAccountId.value
             debtRepository.insert(
                 DebtEntity(
                     personName = personName,
@@ -61,7 +67,8 @@ class DebtViewModel @Inject constructor(
                     type = type,
                     description = description,
                     date = date,
-                    dueDate = dueDate
+                    dueDate = dueDate,
+                    accountId = accountId
                 )
             )
         }
