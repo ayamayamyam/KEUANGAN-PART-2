@@ -37,7 +37,6 @@ fun DebtScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // Ringkasan Arus Kas
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -201,7 +200,7 @@ private fun AddDebtDialog(
                 OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.CalendarToday, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Jatuh Tempo: ${dueDate?.let { DateUtils.formatDate(it) } ?: \"Tidak ada\"}")
+                    Text("Jatuh Tempo: ${dueDate?.let { DateUtils.formatDate(it) } ?: "Tidak ada"}")
                 }
             }
         },
@@ -226,7 +225,11 @@ private fun AddDebtDialog(
                     showDatePicker = false
                 }) { Text("OK") }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Batal") } }
-        ) { DatePicker(state = pickerState) }
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Batal") }
+            }
+        ) {
+            DatePicker(state = pickerState)
+        }
     }
 }
