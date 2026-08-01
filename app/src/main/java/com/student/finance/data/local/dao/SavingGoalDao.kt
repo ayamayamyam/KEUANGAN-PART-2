@@ -15,8 +15,8 @@ interface SavingGoalDao {
     @Delete
     suspend fun delete(goal: SavingGoalEntity)
 
-    @Query("SELECT * FROM saving_goals ORDER BY deadline ASC")
-    fun getAll(): Flow<List<SavingGoalEntity>>
+    @Query("SELECT * FROM saving_goals WHERE accountId = :accountId ORDER BY deadline ASC")
+    fun getAll(accountId: Long): Flow<List<SavingGoalEntity>>
 
     @Query("SELECT * FROM saving_goals WHERE id = :id")
     suspend fun getById(id: Long): SavingGoalEntity?
