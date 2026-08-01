@@ -16,7 +16,7 @@ import com.student.finance.data.local.dao.*
         com.student.finance.data.local.entity.AccountEntity::class
     ],
     version = 4,
-    exportSchema = true
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class StudentFinanceDatabase : RoomDatabase() {
