@@ -8,7 +8,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BudgetRepository @Inject constructor(private val dao: BudgetDao) {
-    fun getForMonth(month: Int, year: Int): Flow<List<BudgetEntity>> = dao.getForMonth(month, year)
+    fun getForMonth(accountId: Long, month: Int, year: Int): Flow<List<BudgetEntity>> = dao.getForMonth(accountId, month, year)
     suspend fun getById(id: Long) = dao.getById(id)
     suspend fun insert(budget: BudgetEntity) = dao.insert(budget)
     suspend fun update(budget: BudgetEntity) = dao.update(budget)
