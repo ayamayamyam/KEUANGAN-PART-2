@@ -8,7 +8,7 @@ data class AccountEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String,
-    val type: String, // "Cash", "Bank", "E-Wallet"
+    val type: String = "Cash",
     val balance: Double = 0.0,
     val icon: String = "account_balance",
     val color: String = "#4CAF50",
