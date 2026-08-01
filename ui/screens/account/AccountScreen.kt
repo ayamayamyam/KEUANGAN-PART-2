@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.student.finance.data.local.entity.AccountEntity
@@ -56,11 +55,17 @@ fun AccountScreen(viewModel: AccountViewModel = hiltViewModel()) {
         AccountDialog(
             account = editingAccount,
             onDismiss = { showDialog = false },
-            onConfirm = { name, type, balance, icon, color ->
+            onConfirm = { name, type, balance ->
                 if (editingAccount != null) {
-                    viewModel.update(editingAccount!!.copy(name = name, type = type, balance = balance, icon = icon, color = color))
+                    viewModel.update(
+                        editingAccount!!.copy(
+                            name = name,
+                            type = type,
+                            balance = balance
+                        )
+                    )
                 } else {
-                    viewModel.add(name, type, balance, icon, color)
+                    viewModel.add(name, type, balance, "account_balance", "#4CAF50")
                 }
                 showDialog = false
             }
@@ -68,7 +73,6 @@ fun AccountScreen(viewModel: AccountViewModel = hiltViewModel()) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountCard(
     account: AccountEntity,
@@ -79,7 +83,10 @@ fun AccountCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (account.isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+            containerColor = if (account.isActive)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -104,9 +111,11 @@ fun AccountCard(
                     color = MaterialTheme.colorScheme.primary
                 )
                 if (account.isActive) {
-                    Badge(containerColor = MaterialTheme.colorScheme.primary) {
-                        Text("Aktif")
-                    }
+                    Text(
+                        text = "Aktif",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
             Row {
@@ -124,18 +133,15 @@ fun AccountCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountDialog(
     account: AccountEntity?,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, Double, String, String) -> Unit
+    onConfirm: (String, String, Double) -> Unit
 ) {
     var name by remember { mutableStateOf(account?.name ?: "") }
     var type by remember { mutableStateOf(account?.type ?: "Cash") }
     var balance by remember { mutableStateOf(account?.balance?.toString() ?: "0") }
-    var icon by remember { mutableStateOf(account?.icon ?: "account_balance") }
-    var color by remember { mutableStateOf(account?.color ?: "#4CAF50") }
 
     val accountTypes = listOf("Cash", "Bank", "E-Wallet")
     var expanded by remember { mutableStateOf(false) }
@@ -151,19 +157,20 @@ fun AccountDialog(
                     label = { Text("Nama Akun") },
                     singleLine = true
                 )
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
+
+                Box {
                     OutlinedTextField(
                         value = type,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Tipe") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor()
+                        trailingIcon = {
+                            IconButton(onClick = { expanded = true }) {
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            }
+                        }
                     )
-                    ExposedDropdownMenu(
+                    DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
@@ -178,6 +185,7 @@ fun AccountDialog(
                         }
                     }
                 }
+
                 OutlinedTextField(
                     value = balance,
                     onValueChange = { balance = it },
@@ -192,9 +200,7 @@ fun AccountDialog(
                     onConfirm(
                         name,
                         type,
-                        balance.toDoubleOrNull() ?: 0.0,
-                        icon,
-                        color
+                        balance.toDoubleOrNull() ?: 0.0
                     )
                 },
                 enabled = name.isNotBlank()
