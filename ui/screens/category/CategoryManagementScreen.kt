@@ -7,13 +7,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.student.finance.data.local.entity.CategoryEntity
 import com.student.finance.data.local.entity.TransactionType
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryManagementScreen(viewModel: CategoryViewModel = hiltViewModel()) {
     val categories by viewModel.categories.collectAsState()
@@ -21,54 +21,55 @@ fun CategoryManagementScreen(viewModel: CategoryViewModel = hiltViewModel()) {
     var editingCategory by remember { mutableStateOf<CategoryEntity?>(null) }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            SegmentedButton(
-                selected = selectedType == TransactionType.EXPENSE,
-                onClick = { selectedType = TransactionType.EXPENSE },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) {
-                Text("Pengeluaran")
-            }
-            SegmentedButton(
-                selected = selectedType == TransactionType.INCOME,
-                onClick = { selectedType = TransactionType.INCOME },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) {
-                Text("Pemasukan")
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                editingCategory = null
+                showDialog = true
+            }) {
+                Icon(Icons.Default.Add, contentDescription = "Tambah Kategori")
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val filteredCategories = categories.filter { it.type == selectedType }
-
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(filteredCategories) { category ->
-                CategoryCard(
-                    category = category,
-                    onEdit = {
-                        editingCategory = category
-                        showDialog = true
-                    },
-                    onDelete = { viewModel.delete(category) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                FilterChip(
+                    selected = selectedType == TransactionType.EXPENSE,
+                    onClick = { selectedType = TransactionType.EXPENSE },
+                    label = { Text("Pengeluaran") }
+                )
+                FilterChip(
+                    selected = selectedType == TransactionType.INCOME,
+                    onClick = { selectedType = TransactionType.INCOME },
+                    label = { Text("Pemasukan") }
                 )
             }
-        }
-    }
 
-    FloatingActionButton(
-        onClick = {
-            editingCategory = null
-            showDialog = true
-        },
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Icon(Icons.Default.Add, contentDescription = "Tambah Kategori")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val filteredCategories = categories.filter { it.type == selectedType }
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(filteredCategories) { category ->
+                    CategoryCard(
+                        category = category,
+                        onEdit = {
+                            editingCategory = category
+                            showDialog = true
+                        },
+                        onDelete = { viewModel.delete(category) }
+                    )
+                }
+            }
+        }
     }
 
     if (showDialog) {
@@ -101,7 +102,7 @@ fun CategoryCard(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Label,
                     contentDescription = null,
@@ -148,7 +149,7 @@ fun CategoryDialog(
                 OutlinedTextField(
                     value = icon,
                     onValueChange = { icon = it },
-                    label = { Text("Icon (nama material icon)") },
+                    label = { Text("Icon") },
                     singleLine = true
                 )
             }
