@@ -15,24 +15,24 @@ interface TransactionDao {
     @Delete
     suspend fun delete(transaction: TransactionEntity)
 
-    @Query("SELECT * FROM transactions ORDER BY date DESC")
-    fun getAll(): Flow<List<TransactionEntity>>
+    @Query("SELECT * FROM transactions WHERE accountId = :accountId ORDER BY date DESC")
+    fun getAll(accountId: Long): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getById(id: Long): TransactionEntity?
 
-    @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end ORDER BY date DESC")
-    fun getByDateRange(start: Long, end: Long): Flow<List<TransactionEntity>>
+    @Query("SELECT * FROM transactions WHERE accountId = :accountId AND date BETWEEN :start AND :end ORDER BY date DESC")
+    fun getByDateRange(accountId: Long, start: Long, end: Long): Flow<List<TransactionEntity>>
 
-    @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY date DESC")
-    fun getByCategory(categoryId: Long): Flow<List<TransactionEntity>>
+    @Query("SELECT * FROM transactions WHERE accountId = :accountId AND categoryId = :categoryId ORDER BY date DESC")
+    fun getByCategory(accountId: Long, categoryId: Long): Flow<List<TransactionEntity>>
 
-    @Query("SELECT COALESCE(SUM(amount),0) FROM transactions WHERE type = 'INCOME' AND date BETWEEN :start AND :end")
-    fun getTotalIncome(start: Long, end: Long): Flow<Double>
+    @Query("SELECT COALESCE(SUM(amount),0) FROM transactions WHERE accountId = :accountId AND type = 'INCOME' AND date BETWEEN :start AND :end")
+    fun getTotalIncome(accountId: Long, start: Long, end: Long): Flow<Double>
 
-    @Query("SELECT COALESCE(SUM(amount),0) FROM transactions WHERE type = 'EXPENSE' AND date BETWEEN :start AND :end")
-    fun getTotalExpense(start: Long, end: Long): Flow<Double>
+    @Query("SELECT COALESCE(SUM(amount),0) FROM transactions WHERE accountId = :accountId AND type = 'EXPENSE' AND date BETWEEN :start AND :end")
+    fun getTotalExpense(accountId: Long, start: Long, end: Long): Flow<Double>
 
-    @Query("SELECT COALESCE(SUM(amount),0) FROM transactions WHERE type = 'EXPENSE' AND categoryId = :categoryId AND date BETWEEN :start AND :end")
-    suspend fun getExpenseForCategoryInRange(categoryId: Long, start: Long, end: Long): Double
+    @Query("SELECT COALESCE(SUM(amount),0) FROM transactions WHERE accountId = :accountId AND type = 'EXPENSE' AND categoryId = :categoryId AND date BETWEEN :start AND :end")
+    suspend fun getExpenseForCategoryInRange(accountId: Long, categoryId: Long, start: Long, end: Long): Double
 }
