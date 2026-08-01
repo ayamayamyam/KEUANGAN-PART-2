@@ -20,16 +20,16 @@ class CategoryRepository @Inject constructor(private val dao: CategoryDao) {
         val existing = dao.getAll(accountId = 1).firstOrNull()
         if (existing.isNullOrEmpty()) {
             val defaults = listOf(
-                CategoryEntity(name = "Makanan", type = TransactionType.EXPENSE),
-                CategoryEntity(name = "Transportasi", type = TransactionType.EXPENSE),
-                CategoryEntity(name = "Belanja", type = TransactionType.EXPENSE),
-                CategoryEntity(name = "Hiburan", type = TransactionType.EXPENSE),
-                CategoryEntity(name = "Kesehatan", type = TransactionType.EXPENSE),
-                CategoryEntity(name = "Pendidikan", type = TransactionType.EXPENSE),
-                CategoryEntity(name = "Gaji", type = TransactionType.INCOME),
-                CategoryEntity(name = "Bonus", type = TransactionType.INCOME),
-                CategoryEntity(name = "Investasi", type = TransactionType.INCOME),
-                CategoryEntity(name = "Lainnya", type = TransactionType.INCOME)
+                CategoryEntity(name = "Makanan", type = TransactionType.EXPENSE, icon = "restaurant"),
+                CategoryEntity(name = "Transportasi", type = TransactionType.EXPENSE, icon = "directions_car"),
+                CategoryEntity(name = "Belanja", type = TransactionType.EXPENSE, icon = "shopping_cart"),
+                CategoryEntity(name = "Hiburan", type = TransactionType.EXPENSE, icon = "movie"),
+                CategoryEntity(name = "Kesehatan", type = TransactionType.EXPENSE, icon = "local_hospital"),
+                CategoryEntity(name = "Pendidikan", type = TransactionType.EXPENSE, icon = "school"),
+                CategoryEntity(name = "Gaji", type = TransactionType.INCOME, icon = "payments"),
+                CategoryEntity(name = "Bonus", type = TransactionType.INCOME, icon = "card_giftcard"),
+                CategoryEntity(name = "Investasi", type = TransactionType.INCOME, icon = "trending_up"),
+                CategoryEntity(name = "Lainnya", type = TransactionType.INCOME, icon = "more_horiz")
             )
             defaults.forEach { dao.insert(it) }
         }

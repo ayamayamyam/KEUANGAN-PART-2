@@ -46,7 +46,7 @@ class AccountViewModel @Inject constructor(
 
     fun setActive(accountId: Long) {
         viewModelScope.launch {
-            repository.setActive(accountId)
+            repository.switchAccount(accountId)
         }
     }
 }
