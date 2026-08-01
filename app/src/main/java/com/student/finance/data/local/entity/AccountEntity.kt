@@ -5,7 +5,13 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "accounts")
 data class AccountEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val name: String,
-    val isActive: Boolean = false
+    val type: String = "Cash",
+    val balance: Double = 0.0,
+    val icon: String = "account_balance",
+    val color: String = "#4CAF50",
+    val isActive: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis()
 )
