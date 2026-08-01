@@ -3,6 +3,7 @@ package com.student.finance.ui.screens.debt
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -20,6 +21,8 @@ import com.student.finance.ui.components.EmptyState
 import com.student.finance.ui.viewmodel.DebtViewModel
 import com.student.finance.util.CurrencyFormatter
 import com.student.finance.util.DateUtils
+import java.text.NumberFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -171,9 +174,12 @@ private fun AddDebtDialog(
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = amountText,
-                    onValueChange = { amountText = it.filter { c -> c.isDigit() } },
+                    onValueChange = { newValue ->
+                        val filtered = newValue.filter { it.isDigit() }
+                        amountText = formatThousandInput(filtered)
+                    },
                     label = { Text("Jumlah (Rp)") },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
@@ -206,7 +212,8 @@ private fun AddDebtDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                val amount = amountText.toDoubleOrNull() ?: 0.0
+                val cleanAmount = amountText.replace(".", "").replace(",", "")
+                val amount = cleanAmount.toDoubleOrNull() ?: 0.0
                 if (name.isNotBlank() && amount > 0) {
                     onConfirm(name, amount, type, description.takeIf { it.isNotBlank() }, dueDate)
                 }
@@ -225,11 +232,16 @@ private fun AddDebtDialog(
                     showDatePicker = false
                 }) { Text("OK") }
             },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Batal") }
-            }
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Batal") } }
         ) {
             DatePicker(state = pickerState)
         }
     }
+}
+
+fun formatThousandInput(value: String): String {
+    if (value.isEmpty()) return ""
+    val number = value.toLongOrNull() ?: return value
+    val formatter = NumberFormat.getNumberInstance(Locale("in", "ID"))
+    return formatter.format(number)
 }
