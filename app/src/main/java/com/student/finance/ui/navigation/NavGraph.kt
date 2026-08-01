@@ -13,9 +13,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.student.finance.ui.screens.account.AccountScreen
 import com.student.finance.ui.screens.budget.BudgetScreen
+import com.student.finance.ui.screens.category.CategoryManagementScreen
 import com.student.finance.ui.screens.dashboard.DashboardScreen
 import com.student.finance.ui.screens.debt.DebtScreen
+import com.student.finance.ui.screens.export.ExportScreen
 import com.student.finance.ui.screens.reports.ReportsScreen
 import com.student.finance.ui.screens.savings.SavingGoalScreen
 import com.student.finance.ui.screens.settings.SettingsScreen
@@ -41,7 +44,10 @@ private val screenTitles = mapOf(
     Screen.Debt.route to "Arus Kas",
     Screen.Savings.route to "Target Menabung",
     Screen.Reports.route to "Laporan Pengeluaran",
-    Screen.Settings.route to "Pengaturan"
+    Screen.Settings.route to "Pengaturan",
+    Screen.Account.route to "Pilih Akun",
+    Screen.Category.route to "Kelola Kategori",
+    Screen.Export.route to "Ekspor Data"
 )
 
 @Composable
@@ -115,26 +121,19 @@ fun StudentFinanceNavHost() {
             startDestination = Screen.Dashboard.route,
             modifier = Modifier.padding(padding)
         ) {
-            composable(Screen.Dashboard.route) {
-                DashboardScreen()
-            }
-            composable(Screen.Transactions.route) {
-                TransactionListScreen()
-            }
+            composable(Screen.Dashboard.route) { DashboardScreen() }
+            composable(Screen.Transactions.route) { TransactionListScreen() }
             composable(Screen.AddTransaction.route) {
                 AddEditTransactionScreen(onDone = { navController.popBackStack() })
             }
-            composable(Screen.Budget.route) {
-                BudgetScreen(addTrigger = budgetAddTrigger)
-            }
-            composable(Screen.Debt.route) {
-                DebtScreen(addTrigger = debtAddTrigger)
-            }
-            composable(Screen.Savings.route) {
-                SavingGoalScreen(addTrigger = savingsAddTrigger)
-            }
+            composable(Screen.Budget.route) { BudgetScreen(addTrigger = budgetAddTrigger) }
+            composable(Screen.Debt.route) { DebtScreen(addTrigger = debtAddTrigger) }
+            composable(Screen.Savings.route) { SavingGoalScreen(addTrigger = savingsAddTrigger) }
             composable(Screen.Reports.route) { ReportsScreen() }
             composable(Screen.Settings.route) { SettingsScreen() }
+            composable(Screen.Account.route) { AccountScreen() }
+            composable(Screen.Category.route) { CategoryManagementScreen() }
+            composable(Screen.Export.route) { ExportScreen() }
         }
     }
 }
