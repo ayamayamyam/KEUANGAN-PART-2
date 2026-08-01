@@ -19,13 +19,12 @@ class CategoryViewModel @Inject constructor(
     val categories = repository.getAll(accountId = 1)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun add(name: String, type: TransactionType, icon: String) {
+    fun add(name: String, type: TransactionType) {
         viewModelScope.launch {
             repository.insert(
                 CategoryEntity(
                     name = name,
-                    type = type,
-                    icon = icon
+                    type = type
                 )
             )
         }
