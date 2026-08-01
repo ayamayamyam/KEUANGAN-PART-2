@@ -16,7 +16,6 @@ class CategoryRepository @Inject constructor(private val dao: CategoryDao) {
     suspend fun insert(category: CategoryEntity) = dao.insert(category)
     suspend fun delete(category: CategoryEntity) = dao.delete(category)
 
-    // ← TAMBAHKAN METHOD INI
     suspend fun seedDefaultsIfEmpty() {
         val existing = dao.getAll(accountId = 1).firstOrNull()
         if (existing.isNullOrEmpty()) {
