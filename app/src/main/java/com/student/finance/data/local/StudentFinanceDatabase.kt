@@ -14,7 +14,7 @@ import com.student.finance.data.local.dao.*
         com.student.finance.data.local.entity.ReminderEntity::class,
         com.student.finance.data.local.entity.DebtEntity::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
