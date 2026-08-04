@@ -10,10 +10,10 @@ import javax.inject.Singleton
 
 @Singleton
 class DebtRepository @Inject constructor(private val dao: DebtDao) {
-    fun getAll(): Flow<List<DebtEntity>> = dao.getAll()
-    fun getByType(type: DebtType): Flow<List<DebtEntity>> = dao.getByType(type)
-    fun getByStatus(status: DebtStatus): Flow<List<DebtEntity>> = dao.getByStatus(status)
-    fun getTotalUnpaidByType(type: DebtType): Flow<Double> = dao.getTotalUnpaidByType(type)
+    fun getAll(accountId: Long): Flow<List<DebtEntity>> = dao.getAll(accountId)
+    fun getByType(accountId: Long, type: DebtType): Flow<List<DebtEntity>> = dao.getByType(accountId, type)
+    fun getByStatus(accountId: Long, status: DebtStatus): Flow<List<DebtEntity>> = dao.getByStatus(accountId, status)
+    fun getTotalUnpaidByType(accountId: Long, type: DebtType): Flow<Double> = dao.getTotalUnpaidByType(accountId, type)
     suspend fun getById(id: Long) = dao.getById(id)
     suspend fun insert(debt: DebtEntity) = dao.insert(debt)
     suspend fun update(debt: DebtEntity) = dao.update(debt)
