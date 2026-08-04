@@ -8,7 +8,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SavingGoalRepository @Inject constructor(private val dao: SavingGoalDao) {
-    fun getAll(): Flow<List<SavingGoalEntity>> = dao.getAll()
+    fun getAll(accountId: Long): Flow<List<SavingGoalEntity>> = dao.getAll(accountId)
     suspend fun getById(id: Long) = dao.getById(id)
     suspend fun insert(goal: SavingGoalEntity) = dao.insert(goal)
     suspend fun update(goal: SavingGoalEntity) = dao.update(goal)
