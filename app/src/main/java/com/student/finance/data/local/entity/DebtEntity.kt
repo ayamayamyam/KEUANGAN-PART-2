@@ -17,5 +17,6 @@ data class DebtEntity(
     val dueDate: Long? = null,
     val status: DebtStatus = DebtStatus.PENDING,
     val isPaid: Boolean = false,
-    val paidDate: Long? = null
+    val paidDate: Long? = null,
+    val accountId: Long = 0
 )
