@@ -12,10 +12,11 @@ import com.student.finance.data.local.dao.*
         com.student.finance.data.local.entity.BudgetEntity::class,
         com.student.finance.data.local.entity.SavingGoalEntity::class,
         com.student.finance.data.local.entity.ReminderEntity::class,
-        com.student.finance.data.local.entity.DebtEntity::class
+        com.student.finance.data.local.entity.DebtEntity::class,
+        com.student.finance.data.local.entity.AccountEntity::class
     ],
-    version = 2,
-    exportSchema = true
+    version = 3,
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class StudentFinanceDatabase : RoomDatabase() {
@@ -25,6 +26,7 @@ abstract class StudentFinanceDatabase : RoomDatabase() {
     abstract fun savingGoalDao(): SavingGoalDao
     abstract fun reminderDao(): ReminderDao
     abstract fun debtDao(): DebtDao
+    abstract fun accountDao(): AccountDao
 
     companion object {
         const val DATABASE_NAME = "student_finance.db"
