@@ -9,5 +9,6 @@ data class CategoryEntity(
     val name: String,
     val iconName: String,
     val colorHex: String,
-    val type: TransactionType
+    val type: TransactionType,
+    val accountId: Long = 0
 )
