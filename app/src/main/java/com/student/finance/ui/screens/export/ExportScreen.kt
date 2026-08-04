@@ -18,8 +18,6 @@ import com.student.finance.ui.viewmodel.TransactionViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -101,7 +99,7 @@ fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
             Text(
                 it,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (it.startsWith("✅")) MaterialTheme.colorScheme.primary
+                color = if (it.startsWith("Berhasil")) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.error
             )
         }
@@ -125,24 +123,85 @@ private suspend fun exportData(
     context: Context,
     transactions: List<com.student.finance.data.local.entity.TransactionEntity>,
     categories: List<com.student.finance.data.local.entity.CategoryEntity>
-): String = withContext(Dispatchers.IO) {
-    return@withContext try {
-        val exportData = ExportData(
-            exportedAt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale("in", "ID")).format(Date()),
-            categories = categories.map { CategoryExport(it.id, it.name, it.iconName, it.colorHex, it.type.name) },
-            transactions = transactions.map {
-                TransactionExport(
-                    id = it.id,
-                    amount = it.amount,
-                    type = it.type.name,
-                    categoryId = it.categoryId,
-                    date = it.date,
-                    description = it.description,
-                    isRecurring = it.isRecurring,
-                    recurringInterval = it.recurringInterval
-                )
+): String {
+    return withContext(Dispatchers.IO) {
+        try {
+            val sb = StringBuilder()
+            sb.append("{\n")
+            sb.append("  \"exportedAt\": \"${escapeJson(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale("in", "ID")).format(Date()))}\",\n")
+            sb.append("  \"categories\": [\n")
+            
+            categories.forEachIndexed { index, cat ->
+                sb.append("    {\n")
+                sb.append("      \"id\": ${cat.id},\n")
+                sb.append("      \"name\": \"${escapeJson(cat.name)}\",\n")
+                sb.append("      \"iconName\": \"${escapeJson(cat.iconName)}\",\n")
+                sb.append("      \"colorHex\": \"${escapeJson(cat.colorHex)}\",\n")
+                sb.append("      \"type\": \"${cat.type.name}\"\n")
+                sb.append("    }")
+                if (index < categories.size - 1) sb.append(",")
+                sb.append("\n")
             }
-        )
+            
+            sb.append("  ],\n")
+            sb.append("  \"transactions\": [\n")
+            
+            transactions.forEachIndexed { index, tx ->
+                sb.append("    {\n")
+                sb.append("      \"id\": ${tx.id},\n")
+                sb.append("      \"amount\": ${tx.amount},\n")
+                sb.append("      \"type\": \"${tx.type.name}\",\n")
+                sb.append("      \"categoryId\": ${tx.categoryId ?: "null"},\n")
+                sb.append("      \"date\": ${tx.date},\n")
+                sb.append("      \"description\": ${if (tx.description != null) "\"${escapeJson(tx.description)}\"" else "null"},\n")
+                sb.append("      \"isRecurring\": ${tx.isRecurring},\n")
+                sb.append("      \"recurringInterval\": ${if (tx.recurringInterval != null) "\"${escapeJson(tx.recurringInterval)}\"" else "null"}\n")
+                sb.append("    }")
+                if (index < transactions.size - 1) sb.append(",")
+                sb.append("\n")
+            }
+            
+            sb.append("  ]\n")
+            sb.append("}")
+            
+            val file = getLastExportFile(context)
+            file.writeText(sb.toString())
+            
+            "Berhasil diekspor: ${file.name}"
+        } catch (e: Exception) {
+            "Gagal: ${e.localizedMessage}"
+        }
+    }
+}
 
-        val json = Json { prettyPrint = true }.encodeToString(exportData)
-        val file = getLastExportFile(context
+private fun escapeJson(input: String?): String {
+    if (input == null) return ""
+    return input
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+}
+
+private fun shareLastExport(context: Context) {
+    val file = getLastExportFile(context)
+    if (!file.exists()) return
+
+    val uri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file
+    )
+
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "application/json"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_SUBJECT, "Student Finance Export")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    val chooser = Intent.createChooser(shareIntent, "Bagikan via")
+    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(chooser)
+}
