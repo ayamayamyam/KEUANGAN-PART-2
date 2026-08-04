@@ -53,4 +53,22 @@ class TransactionViewModel @Inject constructor(
     fun deleteTransaction(transaction: TransactionEntity) {
         viewModelScope.launch { transactionRepository.delete(transaction) }
     }
+
+    // ─── BARU: Tambah & Hapus Kategori ───
+    fun addCategory(name: String, type: TransactionType) {
+        viewModelScope.launch {
+            categoryRepository.insert(
+                CategoryEntity(
+                    name = name,
+                    iconName = "category",
+                    colorHex = "#78909C",
+                    type = type
+                )
+            )
+        }
+    }
+
+    fun deleteCategory(category: CategoryEntity) {
+        viewModelScope.launch { categoryRepository.delete(category) }
+    }
 }
