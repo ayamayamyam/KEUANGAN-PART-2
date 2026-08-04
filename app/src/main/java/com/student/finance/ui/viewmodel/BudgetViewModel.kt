@@ -25,7 +25,7 @@ data class BudgetWithSpent(
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
-    categoryRepository: CategoryRepository,
+    private val categoryRepository: CategoryRepository,
     private val transactionRepository: TransactionRepository,
     dataStoreManager: DataStoreManager
 ) : ViewModel() {
@@ -46,28 +46,30 @@ class BudgetViewModel @Inject constructor(
         .flatMapLatest { accountId -> categoryRepository.getAll(accountId) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val budgetsWithSpent: StateFlow<List<BudgetWithSpent>> = budgets
-        .map { budgetList ->
-            budgetList.map { budget ->
-                val spent = try {
-                    transactionRepository.getExpenseForCategoryInRange(budget.accountId, budget.categoryId, start, end)
-                } catch (e: Exception) {
-                    0.0
-                }
-                val category = categories.value.find { it.id == budget.categoryId }
-                val remaining = (budget.limitAmount - spent).coerceAtLeast(0.0)
-                val percentage = if (budget.limitAmount > 0) (spent / budget.limitAmount).toFloat().coerceIn(0f, 1f) else 0f
-
-                BudgetWithSpent(
-                    budget = budget,
-                    category = category,
-                    spent = spent,
-                    remaining = remaining,
-                    percentage = percentage
-                )
+    val budgetsWithSpent: StateFlow<List<BudgetWithSpent>> = combine(
+        budgets,
+        categories,
+        ::Pair
+    ).map { (budgetList, catList) ->
+        budgetList.map { budget ->
+            val spent = try {
+                transactionRepository.getExpenseForCategoryInRange(budget.accountId, budget.categoryId, start, end)
+            } catch (e: Exception) {
+                0.0
             }
+            val category = catList.find { it.id == budget.categoryId }
+            val remaining = (budget.limitAmount - spent).coerceAtLeast(0.0)
+            val percentage = if (budget.limitAmount > 0) (spent / budget.limitAmount).toFloat().coerceIn(0f, 1f) else 0f
+
+            BudgetWithSpent(
+                budget = budget,
+                category = category,
+                spent = spent,
+                remaining = remaining,
+                percentage = percentage
+            )
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val totalBudget: StateFlow<Double> = budgets
         .map { list -> list.sumOf { it.limitAmount } }
@@ -81,4 +83,22 @@ class BudgetViewModel @Inject constructor(
         .map { list -> list.sumOf { it.remaining } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    fun addBudget(categoryId: Long
+    fun addBudget(categoryId: Long, limitAmount: Double, alertThreshold: Double = 0.8) {
+        viewModelScope.launch {
+            budgetRepository.insert(
+                BudgetEntity(
+                    categoryId = categoryId,
+                    limitAmount = limitAmount,
+                    month = DateUtils.currentMonth(),
+                    year = DateUtils.currentYear(),
+                    alertThreshold = alertThreshold,
+                    accountId = currentAccountId.value
+                )
+            )
+        }
+    }
+
+    fun deleteBudget(budget: BudgetEntity) {
+        viewModelScope.launch { budgetRepository.delete(budget) }
+    }
+}
