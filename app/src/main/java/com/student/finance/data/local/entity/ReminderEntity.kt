@@ -12,5 +12,6 @@ data class ReminderEntity(
     val type: String = "GENERAL",
     val isRecurring: Boolean = false,
     val recurringInterval: String? = null,
-    val isEnabled: Boolean = true
+    val isEnabled: Boolean = true,
+    val accountId: Long = 0
 )
