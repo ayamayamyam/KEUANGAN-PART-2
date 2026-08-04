@@ -20,6 +20,7 @@ class DataStoreManager @Inject constructor(private val context: Context) {
         val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
         val USER_NAME = stringPreferencesKey("user_name")
+        val CURRENT_ACCOUNT_ID = longPreferencesKey("current_account_id")
     }
 
     val currency: Flow<String> = context.dataStore.data.map { it[Keys.CURRENCY] ?: "IDR" }
@@ -28,6 +29,7 @@ class DataStoreManager @Inject constructor(private val context: Context) {
     val biometricEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.BIOMETRIC_ENABLED] ?: false }
     val appLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.APP_LOCK_ENABLED] ?: false }
     val userName: Flow<String> = context.dataStore.data.map { it[Keys.USER_NAME] ?: "Pengguna" }
+    val currentAccountId: Flow<Long> = context.dataStore.data.map { it[Keys.CURRENT_ACCOUNT_ID] ?: 0L }
 
     suspend fun setCurrency(value: String) {
         context.dataStore.edit { it[Keys.CURRENCY] = value }
@@ -53,5 +55,9 @@ class DataStoreManager @Inject constructor(private val context: Context) {
 
     suspend fun setUserName(value: String) {
         context.dataStore.edit { it[Keys.USER_NAME] = value }
+    }
+
+    suspend fun setCurrentAccountId(value: Long) {
+        context.dataStore.edit { it[Keys.CURRENT_ACCOUNT_ID] = value }
     }
 }
