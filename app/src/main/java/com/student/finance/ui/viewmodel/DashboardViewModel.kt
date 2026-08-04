@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -36,20 +37,27 @@ class DashboardViewModel @Inject constructor(
     private val prevStart = DateUtils.startOfMonth(prevMonth, prevYear)
     private val prevEnd = DateUtils.endOfMonth(prevMonth, prevYear)
 
-    val uiState: StateFlow<DashboardUiState> = combine(
-        transactionRepository.getTotalIncome(start, end),
-        transactionRepository.getTotalExpense(start, end),
-        transactionRepository.getTotalIncome(prevStart, prevEnd),
-        transactionRepository.getTotalExpense(prevStart, prevEnd),
-        dataStoreManager.currency
-    ) { income, expense, prevIncome, prevExpense, currency ->
-        val prevBalance = prevIncome - prevExpense
-        DashboardUiState(
-            totalIncome = income,
-            totalExpense = expense,
-            balance = prevBalance + (income - expense),   // ← DIJUMLAHKAN DENGAN SALDO BULAN LALU
-            previousMonthBalance = prevBalance,
-            currency = currency
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
+    val currentAccountId: StateFlow<Long> = dataStoreManager.currentAccountId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    val uiState: StateFlow<DashboardUiState> = currentAccountId
+        .flatMapLatest { accountId ->
+            combine(
+                transactionRepository.getTotalIncome(accountId, start, end),
+                transactionRepository.getTotalExpense(accountId, start, end),
+                transactionRepository.getTotalIncome(accountId, prevStart, prevEnd),
+                transactionRepository.getTotalExpense(accountId, prevStart, prevEnd),
+                dataStoreManager.currency
+            ) { income, expense, prevIncome, prevExpense, currency ->
+                val prevBalance = prevIncome - prevExpense
+                DashboardUiState(
+                    totalIncome = income,
+                    totalExpense = expense,
+                    balance = prevBalance + (income - expense),
+                    previousMonthBalance = prevBalance,
+                    currency = currency
+                )
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 }
