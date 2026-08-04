@@ -73,7 +73,7 @@ fun DashboardScreen(
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                 Column(Modifier.padding(20.dp)) {
-                    Text("Saldo Bulan Ini", style = MaterialTheme.typography.labelSmall)
+                    Text("Total Saldo", style = MaterialTheme.typography.labelSmall)
                     Text(
                         CurrencyFormatter.format(uiState.balance, uiState.currency),
                         style = MaterialTheme.typography.headlineMedium,
