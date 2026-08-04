@@ -17,7 +17,7 @@ enum class TransactionType { INCOME, EXPENSE }
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("categoryId"), Index("date")]
+    indices = [Index("categoryId"), Index("date"), Index("accountId")]
 )
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -28,5 +28,6 @@ data class TransactionEntity(
     val description: String? = null,
     val receiptPhotoPath: String? = null,
     val isRecurring: Boolean = false,
-    val recurringInterval: String? = null
+    val recurringInterval: String? = null,
+    val accountId: Long = 0
 )
