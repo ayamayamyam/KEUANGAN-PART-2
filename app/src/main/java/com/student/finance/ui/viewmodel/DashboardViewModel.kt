@@ -47,7 +47,7 @@ class DashboardViewModel @Inject constructor(
         DashboardUiState(
             totalIncome = income,
             totalExpense = expense,
-            balance = income - expense,
+            balance = prevBalance + (income - expense),   // ← DIJUMLAHKAN DENGAN SALDO BULAN LALU
             previousMonthBalance = prevBalance,
             currency = currency
         )
