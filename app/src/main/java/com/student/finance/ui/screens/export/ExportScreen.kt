@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.student.finance.ui.viewmodel.SettingsViewModel
 import com.student.finance.ui.viewmodel.TransactionViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,11 +28,15 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
+fun ExportScreen(
+    viewModel: TransactionViewModel = hiltViewModel(),
+    settingsViewModel: SettingsViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val transactions by viewModel.transactions.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val currency by settingsViewModel.currency.collectAsState()
 
     var isExporting by remember { mutableStateOf(false) }
     var isBackingUp by remember { mutableStateOf(false) }
@@ -44,7 +49,7 @@ fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
             result.data?.data?.let { uri ->
                 scope.launch {
                     isBackingUp = true
-                    message = backupToUri(context, uri, transactions, categories)
+                    message = backupCsvToUri(context, uri, transactions, categories, currency)
                     isBackingUp = false
                 }
             }
@@ -72,7 +77,7 @@ fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Simpan atau bagikan semua data keuanganmu",
+            "Export ke format Excel (CSV) yang bisa dibuka di Microsoft Excel",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -83,7 +88,7 @@ fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
             onClick = {
                 scope.launch {
                     isExporting = true
-                    message = exportData(context, transactions, categories)
+                    message = exportCsv(context, transactions, categories, currency)
                     isExporting = false
                 }
             },
@@ -98,7 +103,7 @@ fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
                 )
                 Spacer(Modifier.width(8.dp))
             }
-            Text("Export ke File JSON")
+            Text("Export ke Excel (CSV)")
         }
 
         Spacer(Modifier.height(12.dp))
@@ -118,9 +123,9 @@ fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
             onClick = {
                 val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "application/json"
+                    type = "text/csv"
                     val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale("in", "ID")).format(Date())
-                    putExtra(Intent.EXTRA_TITLE, "smartmoney_backup_$timestamp.json")
+                    putExtra(Intent.EXTRA_TITLE, "smartmoney_export_$timestamp.csv")
                 }
                 driveLauncher.launch(intent)
             },
@@ -173,19 +178,20 @@ fun ExportScreen(viewModel: TransactionViewModel = hiltViewModel()) {
 }
 
 private fun getLastExportFile(context: Context): File {
-    return File(context.cacheDir, "student_finance_export.json")
+    return File(context.cacheDir, "student_finance_export.csv")
 }
 
-private suspend fun exportData(
+private suspend fun exportCsv(
     context: Context,
     transactions: List<com.student.finance.data.local.entity.TransactionEntity>,
-    categories: List<com.student.finance.data.local.entity.CategoryEntity>
+    categories: List<com.student.finance.data.local.entity.CategoryEntity>,
+    currency: String
 ): String {
     return withContext(Dispatchers.IO) {
         try {
-            val json = buildJson(transactions, categories)
+            val csv = buildCsv(transactions, categories, currency)
             val file = getLastExportFile(context)
-            file.writeText(json)
+            file.writeText(csv, Charsets.UTF_8)
             "Berhasil diekspor: ${file.name}"
         } catch (e: Exception) {
             "Gagal: ${e.localizedMessage}"
@@ -193,17 +199,18 @@ private suspend fun exportData(
     }
 }
 
-private suspend fun backupToUri(
+private suspend fun backupCsvToUri(
     context: Context,
     uri: android.net.Uri,
     transactions: List<com.student.finance.data.local.entity.TransactionEntity>,
-    categories: List<com.student.finance.data.local.entity.CategoryEntity>
+    categories: List<com.student.finance.data.local.entity.CategoryEntity>,
+    currency: String
 ): String {
     return withContext(Dispatchers.IO) {
         try {
-            val json = buildJson(transactions, categories)
+            val csv = buildCsv(transactions, categories, currency)
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(json.toByteArray(Charsets.UTF_8))
+                outputStream.write(csv.toByteArray(Charsets.UTF_8))
             }
             "Berhasil backup ke Google Drive!"
         } catch (e: Exception) {
@@ -212,59 +219,45 @@ private suspend fun backupToUri(
     }
 }
 
-private fun buildJson(
+private fun buildCsv(
     transactions: List<com.student.finance.data.local.entity.TransactionEntity>,
-    categories: List<com.student.finance.data.local.entity.CategoryEntity>
+    categories: List<com.student.finance.data.local.entity.CategoryEntity>,
+    currency: String
 ): String {
     val sb = StringBuilder()
-    sb.append("{\n")
-    sb.append("  \"exportedAt\": \"${escapeJson(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale("in", "ID")).format(Date()))}\",\n")
-    sb.append("  \"appVersion\": \"3.1\",\n")
-    sb.append("  \"categories\": [\n")
+    // BOM untuk Excel Indonesia
+    sb.append('\uFEFF')
+    // Header
+    sb.append("No;Tanggal;Tipe;Kategori;Jumlah ($currency);Deskripsi\n")
 
-    categories.forEachIndexed { index, cat ->
-        sb.append("    {\n")
-        sb.append("      \"id\": ${cat.id},\n")
-        sb.append("      \"name\": \"${escapeJson(cat.name)}\",\n")
-        sb.append("      \"iconName\": \"${escapeJson(cat.iconName)}\",\n")
-        sb.append("      \"colorHex\": \"${escapeJson(cat.colorHex)}\",\n")
-        sb.append("      \"type\": \"${cat.type.name}\"\n")
-        sb.append("    }")
-        if (index < categories.size - 1) sb.append(",")
-        sb.append("\n")
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale("in", "ID"))
+    val catMap = categories.associateBy { it.id }
+
+    transactions.sortedByDescending { it.date }.forEachIndexed { index, tx ->
+        val catName = tx.categoryId?.let { catMap[it]?.name } ?: "Tanpa Kategori"
+        val dateStr = dateFormat.format(Date(tx.date))
+        val typeStr = if (tx.type.name == "INCOME") "Pemasukan" else "Pengeluaran"
+        val amountStr = String.format(Locale("in", "ID"), "%,.2f", tx.amount)
+
+        sb.append("${index + 1};")
+        sb.append("$dateStr;")
+        sb.append("$typeStr;")
+        sb.append("$catName;")
+        sb.append("$amountStr;")
+        sb.append("${tx.description ?: "-"}\n")
     }
 
-    sb.append("  ],\n")
-    sb.append("  \"transactions\": [\n")
+    // Summary
+    val totalIncome = transactions.filter { it.type.name == "INCOME" }.sumOf { it.amount }
+    val totalExpense = transactions.filter { it.type.name == "EXPENSE" }.sumOf { it.amount }
+    val balance = totalIncome - totalExpense
 
-    transactions.forEachIndexed { index, tx ->
-        sb.append("    {\n")
-        sb.append("      \"id\": ${tx.id},\n")
-        sb.append("      \"amount\": ${tx.amount},\n")
-        sb.append("      \"type\": \"${tx.type.name}\",\n")
-        sb.append("      \"categoryId\": ${tx.categoryId ?: "null"},\n")
-        sb.append("      \"date\": ${tx.date},\n")
-        sb.append("      \"description\": ${if (tx.description != null) "\"${escapeJson(tx.description)}\"" else "null"},\n")
-        sb.append("      \"isRecurring\": ${tx.isRecurring},\n")
-        sb.append("      \"recurringInterval\": ${if (tx.recurringInterval != null) "\"${escapeJson(tx.recurringInterval)}\"" else "null"}\n")
-        sb.append("    }")
-        if (index < transactions.size - 1) sb.append(",")
-        sb.append("\n")
-    }
+    sb.append("\n;Ringkasan;;;\n")
+    sb.append(";;Total Pemasukan;${String.format(Locale("in", "ID"), "%,.2f", totalIncome)};\n")
+    sb.append(";;Total Pengeluaran;${String.format(Locale("in", "ID"), "%,.2f", totalExpense)};\n")
+    sb.append(";;Saldo;${String.format(Locale("in", "ID"), "%,.2f", balance)};\n")
 
-    sb.append("  ]\n")
-    sb.append("}")
     return sb.toString()
-}
-
-private fun escapeJson(input: String?): String {
-    if (input == null) return ""
-    return input
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
 }
 
 private fun shareLastExport(context: Context) {
@@ -278,9 +271,9 @@ private fun shareLastExport(context: Context) {
     )
 
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
-        type = "application/json"
+        type = "text/csv"
         putExtra(Intent.EXTRA_STREAM, uri)
-        putExtra(Intent.EXTRA_SUBJECT, "Student Finance Export")
+        putExtra(Intent.EXTRA_SUBJECT, "Smart Money Export")
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
