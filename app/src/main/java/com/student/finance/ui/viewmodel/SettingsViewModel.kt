@@ -30,9 +30,13 @@ class SettingsViewModel @Inject constructor(
     val appLockEnabled: StateFlow<Boolean> = dataStoreManager.appLockEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val userName: StateFlow<String> = dataStoreManager.userName
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Pengguna")
+
     fun setCurrency(value: String) = viewModelScope.launch { dataStoreManager.setCurrency(value) }
     fun setDarkMode(value: Boolean) = viewModelScope.launch { dataStoreManager.setDarkMode(value) }
     fun setPinCode(value: String?) = viewModelScope.launch { dataStoreManager.setPinCode(value) }
     fun setBiometricEnabled(value: Boolean) = viewModelScope.launch { dataStoreManager.setBiometricEnabled(value) }
     fun setAppLockEnabled(value: Boolean) = viewModelScope.launch { dataStoreManager.setAppLockEnabled(value) }
+    fun setUserName(value: String) = viewModelScope.launch { dataStoreManager.setUserName(value) }
 }
