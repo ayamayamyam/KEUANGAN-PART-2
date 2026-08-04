@@ -4,27 +4,56 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Wallet body -->
+
+    <!-- Dompet body (putih bold, rounded besar) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M26,40 L82,40 C84.2,40 86,41.8 86,44 L86,74 C86,76.2 84.2,78 82,78 L26,78 C23.8,78 22,76.2 22,74 L22,44 C22,41.8 23.8,40 26,40 Z"/>
-    <!-- Wallet fold -->
+        android:pathData="M26,36
+                          C26,32 30,30 34,30
+                          L74,30
+                          C78,30 82,32 82,36
+                          L82,72
+                          C82,76 78,78 74,78
+                          L34,78
+                          C30,78 26,76 26,72
+                          Z"/>
+
+    <!-- Fold / garis tutup dompet (tosca muda) -->
     <path
-        android:fillColor="#E8F5E9"
-        android:pathData="M22,46 L86,46 L86,52 L22,52 Z"/>
-    <!-- Inner pocket -->
+        android:fillColor="#E0F2F1"
+        android:pathData="M26,46 L82,46 L82,52 L26,52 Z"/>
+
+    <!-- Inner pocket (rounded) -->
     <path
-        android:fillColor="#F5F5F5"
-        android:pathData="M58,56 L80,56 C81.1,56 82,56.9 82,58 L82,72 C82,73.1 81.1,74 80,74 L58,74 C56.9,74 56,73.1 56,72 L56,58 C56,56.9 56.9,56 58,56 Z"/>
-    <!-- Gold coin -->
+        android:fillColor="#B2DFDB"
+        android:pathData="M54,56
+                          L76,56
+                          C78,56 80,58 80,60
+                          L80,72
+                          C80,74 78,76 76,76
+                          L54,76
+                          C52,76 50,74 50,72
+                          L50,60
+                          C50,58 52,56 54,56
+                          Z"/>
+
+    <!-- Koin emas (ikon khas keuangan) -->
     <path
         android:fillColor="#FFD700"
-        android:pathData="M74,64m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"/>
+        android:pathData="M72,64
+                          C72,61 74,59 77,59
+                          C80,59 82,61 82,64
+                          C82,67 80,69 77,69
+                          C74,69 72,67 72,64
+                          Z"/>
+
+    <!-- Detail koin -->
     <path
         android:fillColor="#FFA000"
-        android:pathData="M74,64m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0"/>
-    <!-- Wallet button -->
-    <path
-        android:fillColor="#2E7D32"
-        android:pathData="M72,62m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+        android:pathData="M75,64
+                          C75,62.5 76,61.5 77,61.5
+                          C78,61.5 79,62.5 79,64
+                          C79,65.5 78,66.5 77,66.5
+                          C76,66.5 75,65.5 75,64
+                          Z"/>
 </vector>
