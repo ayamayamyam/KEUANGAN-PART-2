@@ -2,6 +2,7 @@ package com.student.finance.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.student.finance.data.local.DataStoreManager
 import com.student.finance.data.local.entity.BudgetEntity
 import com.student.finance.data.local.entity.CategoryEntity
 import com.student.finance.data.repository.BudgetRepository
@@ -25,24 +26,31 @@ data class BudgetWithSpent(
 class BudgetViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
     categoryRepository: CategoryRepository,
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
     private val start = DateUtils.startOfMonth(DateUtils.currentMonth(), DateUtils.currentYear())
     private val end = DateUtils.endOfMonth(DateUtils.currentMonth(), DateUtils.currentYear())
 
-    val budgets: StateFlow<List<BudgetEntity>> =
-        budgetRepository.getForMonth(DateUtils.currentMonth(), DateUtils.currentYear())
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val currentAccountId: StateFlow<Long> = dataStoreManager.currentAccountId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
-    val categories: StateFlow<List<CategoryEntity>> = categoryRepository.getAll()
+    val budgets: StateFlow<List<BudgetEntity>> = currentAccountId
+        .flatMapLatest { accountId ->
+            budgetRepository.getForMonth(accountId, DateUtils.currentMonth(), DateUtils.currentYear())
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val categories: StateFlow<List<CategoryEntity>> = currentAccountId
+        .flatMapLatest { accountId -> categoryRepository.getAll(accountId) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val budgetsWithSpent: StateFlow<List<BudgetWithSpent>> = budgets
         .map { budgetList ->
             budgetList.map { budget ->
                 val spent = try {
-                    transactionRepository.getExpenseForCategoryInRange(budget.categoryId, start, end)
+                    transactionRepository.getExpenseForCategoryInRange(budget.accountId, budget.categoryId, start, end)
                 } catch (e: Exception) {
                     0.0
                 }
@@ -73,21 +81,4 @@ class BudgetViewModel @Inject constructor(
         .map { list -> list.sumOf { it.remaining } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    fun addBudget(categoryId: Long, limitAmount: Double, alertThreshold: Double = 0.8) {
-        viewModelScope.launch {
-            budgetRepository.insert(
-                BudgetEntity(
-                    categoryId = categoryId,
-                    limitAmount = limitAmount,
-                    month = DateUtils.currentMonth(),
-                    year = DateUtils.currentYear(),
-                    alertThreshold = alertThreshold
-                )
-            )
-        }
-    }
-
-    fun deleteBudget(budget: BudgetEntity) {
-        viewModelScope.launch { budgetRepository.delete(budget) }
-    }
-}
+    fun addBudget(categoryId: Long
