@@ -15,7 +15,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("categoryId")]
+    indices = [Index("categoryId"), Index("accountId")]
 )
 data class BudgetEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -24,5 +24,6 @@ data class BudgetEntity(
     val period: String = "MONTHLY",
     val month: Int,
     val year: Int,
-    val alertThreshold: Double = 0.8
+    val alertThreshold: Double = 0.8,
+    val accountId: Long = 0
 )
