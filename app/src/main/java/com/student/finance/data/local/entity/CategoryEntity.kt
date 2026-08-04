@@ -3,12 +3,14 @@ package com.student.finance.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "categories")
-data class CategoryEntity(
+@Entity(tableName = "saving_goals")
+data class SavingGoalEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
-    val iconName: String,
-    val colorHex: String,
-    val type: TransactionType,
+    val targetAmount: Double,
+    val savedAmount: Double = 0.0,
+    val deadline: Long? = null,
+    val iconName: String = "savings",
+    val colorHex: String = "#4CAF50",
     val accountId: Long = 0
 )
