@@ -52,4 +52,16 @@ class SavingGoalViewModel @Inject constructor(
                     type = TransactionType.EXPENSE,
                     categoryId = null,
                     date = System.currentTimeMillis(),
-                    description = "Tab
+                    description = "Tabungan: ${goal.name}",
+                    accountId = currentAccountId.value
+                )
+            )
+        }
+    }
+
+    fun deleteGoal(goal: SavingGoalEntity) {
+        viewModelScope.launch {
+            repository.delete(goal)
+        }
+    }
+}
