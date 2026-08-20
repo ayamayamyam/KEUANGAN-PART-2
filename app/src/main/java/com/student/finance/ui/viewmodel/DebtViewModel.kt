@@ -75,21 +75,11 @@ class DebtViewModel @Inject constructor(
                     description = description,
                     date = date,
                     dueDate = dueDate,
+                    status = DebtStatus.PENDING,
+                    isPaid = false,
                     accountId = currentAccountId.value
                 )
             )
-        }
-    }
-
-    fun updateDebt(debt: DebtEntity) {
-        viewModelScope.launch {
-            debtRepository.update(debt)
-        }
-    }
-
-    fun deleteDebt(debt: DebtEntity) {
-        viewModelScope.launch {
-            debtRepository.delete(debt)
         }
     }
 
@@ -97,11 +87,17 @@ class DebtViewModel @Inject constructor(
         viewModelScope.launch {
             debtRepository.update(
                 debt.copy(
-                    isPaid = true,
                     status = DebtStatus.PAID,
+                    isPaid = true,
                     paidDate = System.currentTimeMillis()
                 )
             )
+        }
+    }
+
+    fun deleteDebt(debt: DebtEntity) {
+        viewModelScope.launch {
+            debtRepository.delete(debt)
         }
     }
 }
