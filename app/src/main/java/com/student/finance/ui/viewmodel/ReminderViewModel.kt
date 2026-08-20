@@ -78,3 +78,41 @@ class ReminderViewModel @Inject constructor(
         title: String,
         message: String?,
         triggerTime: Long,
+        isRecurring: Boolean
+    ) {
+        val workManager = WorkManager.getInstance(context)
+        val delay = (triggerTime - System.currentTimeMillis()).coerceAtLeast(0)
+
+        val data = workDataOf(
+            "reminder_id" to reminderId,
+            "title" to title,
+            "message" to (message ?: "")
+        )
+
+        if (isRecurring) {
+            val request = PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.DAYS)
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .setInputData(data)
+                .build()
+            workManager.enqueueUniquePeriodicWork(
+                "reminder_$reminderId",
+                ExistingPeriodicWorkPolicy.UPDATE,
+                request
+            )
+        } else {
+            val request = OneTimeWorkRequestBuilder<ReminderWorker>()
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .setInputData(data)
+                .build()
+            workManager.enqueueUniqueWork(
+                "reminder_$reminderId",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+    }
+
+    private fun cancelReminderWork(reminderId: Long) {
+        WorkManager.getInstance(context).cancelUniqueWork("reminder_$reminderId")
+    }
+}
