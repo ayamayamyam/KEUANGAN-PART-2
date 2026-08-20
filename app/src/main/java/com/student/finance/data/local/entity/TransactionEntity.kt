@@ -27,5 +27,5 @@ data class TransactionEntity(
     val receiptPhotoPath: String? = null,
     val isRecurring: Boolean = false,
     val recurringInterval: String? = null,
-    val accountId: Long = 1
+    val accountId: Long = 0
 )
