@@ -56,4 +56,52 @@ class DebtViewModel @Inject constructor(
                 )
             }
         }
-        .stateIn(view
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DebtUiState())
+
+    fun addDebt(
+        personName: String,
+        amount: Double,
+        type: DebtType,
+        description: String?,
+        date: Long,
+        dueDate: Long?
+    ) {
+        viewModelScope.launch {
+            debtRepository.insert(
+                DebtEntity(
+                    personName = personName,
+                    amount = amount,
+                    type = type,
+                    description = description,
+                    date = date,
+                    dueDate = dueDate,
+                    accountId = currentAccountId.value
+                )
+            )
+        }
+    }
+
+    fun updateDebt(debt: DebtEntity) {
+        viewModelScope.launch {
+            debtRepository.update(debt)
+        }
+    }
+
+    fun deleteDebt(debt: DebtEntity) {
+        viewModelScope.launch {
+            debtRepository.delete(debt)
+        }
+    }
+
+    fun markAsPaid(debt: DebtEntity) {
+        viewModelScope.launch {
+            debtRepository.update(
+                debt.copy(
+                    isPaid = true,
+                    status = DebtStatus.PAID,
+                    paidDate = System.currentTimeMillis()
+                )
+            )
+        }
+    }
+}
