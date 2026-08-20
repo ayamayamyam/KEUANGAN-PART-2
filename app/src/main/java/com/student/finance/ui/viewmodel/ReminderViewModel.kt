@@ -80,34 +80,41 @@ class ReminderViewModel @Inject constructor(
         triggerTime: Long,
         isRecurring: Boolean
     ) {
-        val workManager = WorkManager.getInstance(context)
-        val delay = (triggerTime - System.currentTimeMillis()).coerceAtLeast(0)
+        val delay = triggerTime - System.currentTimeMillis()
+        if (delay <= 0) return
 
-        val data = workDataOf(
-            "reminder_id" to reminderId,
+        val inputData = workDataOf(
             "title" to title,
-            "message" to (message ?: "")
+            "message" to (message ?: ""),
+            "reminder_id" to reminderId
         )
 
-        if (isRecurring) {
-            val request = PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.DAYS)
+        val workRequest = if (isRecurring) {
+            PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.DAYS)
                 .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-                .setInputData(data)
+                .setInputData(inputData)
+                .addTag("reminder_$reminderId")
                 .build()
+        } else {
+            OneTimeWorkRequestBuilder<ReminderWorker>()
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .setInputData(inputData)
+                .addTag("reminder_$reminderId")
+                .build()
+        }
+
+        val workManager = WorkManager.getInstance(context)
+        if (isRecurring) {
             workManager.enqueueUniquePeriodicWork(
                 "reminder_$reminderId",
                 ExistingPeriodicWorkPolicy.UPDATE,
-                request
+                workRequest as PeriodicWorkRequest
             )
         } else {
-            val request = OneTimeWorkRequestBuilder<ReminderWorker>()
-                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-                .setInputData(data)
-                .build()
             workManager.enqueueUniqueWork(
                 "reminder_$reminderId",
                 ExistingWorkPolicy.REPLACE,
-                request
+                workRequest as OneTimeWorkRequest
             )
         }
     }
